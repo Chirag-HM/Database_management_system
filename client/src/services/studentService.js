@@ -144,3 +144,49 @@ export const deleteStudent = async (id) => {
     method: "DELETE",
   });
 };
+
+/**
+ * Upload profile image.
+ * Maps to: POST /api/upload
+ */
+export const uploadImage = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  // We can't use apiFetch directly because fetch needs to let browser set Content-Type for FormData
+  const url = `${API_BASE}/api/upload`;
+  const token = getToken();
+
+  // Retry logic built-in
+  for (let attempt = 0; attempt <= 2; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.status === 401) {
+        removeToken();
+        window.location.href = "/login";
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Image upload failed");
+      }
+
+      return data;
+    } catch (error) {
+      if (attempt < 2) {
+        console.warn(`⚠️ Retry upload ${attempt + 1}/2`);
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+      throw error;
+    }
+  }
+};

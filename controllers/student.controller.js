@@ -1,5 +1,6 @@
 const service = require("../services/student.service");
 const mongoose = require("mongoose");
+const socket = require("../config/socket");
 
 // ─────────────────────────────────────────────────────────────
 // Controller Layer
@@ -58,6 +59,14 @@ exports.getById = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const student = await service.createStudent(req.body);
+    
+    // Emit real-time event
+    try {
+      socket.getIO().emit("studentCreated", student);
+    } catch (err) {
+      console.error("Socket emit failed:", err.message);
+    }
+
     res.status(201).json(student);
   } catch (error) {
     next(error);
@@ -77,6 +86,13 @@ exports.update = async (req, res, next) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // Emit real-time event
+    try {
+      socket.getIO().emit("studentUpdated", student);
+    } catch (err) {
+      console.error("Socket emit failed:", err.message);
+    }
+
     res.status(200).json(student);
   } catch (error) {
     next(error);
@@ -94,6 +110,13 @@ exports.delete = async (req, res, next) => {
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Emit real-time event
+    try {
+      socket.getIO().emit("studentDeleted", req.params.id);
+    } catch (err) {
+      console.error("Socket emit failed:", err.message);
     }
 
     res.status(200).json({ message: "Student deleted successfully" });

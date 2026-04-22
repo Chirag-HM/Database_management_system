@@ -36,6 +36,10 @@ const studentSchema = new mongoose.Schema(
       type: Date,
       default: Date.now, // Auto-set on document creation
     },
+    imageUrl: {
+      type: String,
+      default: "", // Cloudinary URL will be stored here
+    },
   },
   {
     // versionKey: false removes the __v field that Mongoose adds
@@ -72,6 +76,10 @@ function validateStudent(data) {
 
   if (!course || typeof course !== "string") {
     return "Course is required and must be a string";
+  }
+
+  if (data.imageUrl && typeof data.imageUrl !== "string") {
+    return "Image URL must be a string";
   }
 
   return null; // No errors

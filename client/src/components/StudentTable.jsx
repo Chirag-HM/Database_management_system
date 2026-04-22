@@ -57,8 +57,12 @@ const StudentTable = ({ students, onEdit, onDelete }) => {
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold shrink-0">
-                      {student.name.charAt(0).toUpperCase()}
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
+                      {student.imageUrl ? (
+                        <img src={student.imageUrl} alt={student.name} className="w-full h-full object-cover" />
+                      ) : (
+                        student.name.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <span className="font-medium text-text">{student.name}</span>
                   </div>
@@ -105,8 +109,12 @@ const StudentTable = ({ students, onEdit, onDelete }) => {
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                  {student.name.charAt(0).toUpperCase()}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold overflow-hidden">
+                  {student.imageUrl ? (
+                    <img src={student.imageUrl} alt={student.name} className="w-full h-full object-cover" />
+                  ) : (
+                    student.name.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div>
                   <h3 className="font-semibold text-text">{student.name}</h3>

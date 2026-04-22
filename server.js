@@ -12,14 +12,22 @@
 
 require("dotenv").config(); // Load .env into process.env
 
+const http = require("http");
 const app = require("./app");
 const connectDB = require("./config/db");
+const socketConfig = require("./config/socket");
 
 const PORT = process.env.PORT || 5000;
 
+// Create HTTP server instead of listening on Express directly
+const server = http.createServer(app);
+
+// Initialize Socket.IO with the HTTP server
+socketConfig.init(server);
+
 // Connect to MongoDB, then start listening
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
 });

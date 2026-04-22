@@ -18,8 +18,9 @@
  *      React "owns" the input value — the DOM never diverges from state.
  *      This is critical for validation, formatting, and test-ability.
  */
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { validateStudentForm } from "../utils/helpers";
+import { uploadImage } from "../services/studentService";
 import Button from "./Button";
 
 const StudentForm = ({ initialData = null, onSubmit, isLoading = false }) => {
@@ -30,10 +31,17 @@ const StudentForm = ({ initialData = null, onSubmit, isLoading = false }) => {
     name: initialData?.name || "",
     age: initialData?.age || "",
     course: initialData?.course || "",
+    imageUrl: initialData?.imageUrl || "",
   });
 
   // Error state — field-level validation errors
   const [errors, setErrors] = useState({});
+
+  // Image Upload State
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(initialData?.imageUrl || "");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   /**
    * handleChange
@@ -56,6 +64,19 @@ const StudentForm = ({ initialData = null, onSubmit, isLoading = false }) => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setErrors((prev) => ({ ...prev, image: "Image must be under 5MB" }));
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setErrors((prev) => ({ ...prev, image: null }));
+    }
+  };
+
   /**
    * handleSubmit
    * ────────────
@@ -65,7 +86,7 @@ const StudentForm = ({ initialData = null, onSubmit, isLoading = false }) => {
    *    show error messages below each input.
    * 4. If valid, calls the parent's onSubmit callback.
    */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateStudentForm(formData);
 
@@ -75,7 +96,23 @@ const StudentForm = ({ initialData = null, onSubmit, isLoading = false }) => {
     }
 
     setErrors({});
-    onSubmit(formData);
+    
+    let finalImageUrl = formData.imageUrl;
+
+    if (imageFile) {
+      setIsUploading(true);
+      try {
+        const result = await uploadImage(imageFile);
+        finalImageUrl = result.imageUrl;
+      } catch (err) {
+        setErrors({ image: "Failed to upload image. Please try again." });
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+
+    onSubmit({ ...formData, imageUrl: finalImageUrl });
   };
 
   return (
@@ -160,16 +197,53 @@ const StudentForm = ({ initialData = null, onSubmit, isLoading = false }) => {
         )}
       </div>
 
+      {/* ─── Profile Image ─── */}
+      <div>
+        <label className="block text-sm font-medium text-text mb-2">
+          Profile Image
+        </label>
+        <div className="flex items-center gap-4">
+          <div 
+            className="w-16 h-16 rounded-full overflow-hidden bg-surface border border-border flex items-center justify-center cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {imagePreview ? (
+              <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-text-muted text-xs">Upload</span>
+            )}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Choose File
+          </Button>
+        </div>
+        {errors.image && (
+          <p className="mt-1.5 text-xs text-danger">{errors.image}</p>
+        )}
+      </div>
+
       {/* ─── Submit ─── */}
       <div className="flex items-center gap-3 pt-2">
         <Button
           type="submit"
           variant="primary"
           size="lg"
-          disabled={isLoading}
+          disabled={isLoading || isUploading}
           className="flex-1 sm:flex-none"
         >
-          {isLoading
+          {isLoading || isUploading
             ? "Saving..."
             : isEditMode
             ? "Update Student"

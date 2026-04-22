@@ -3,6 +3,7 @@ const app = express();
 
 const studentRoutes = require("./routes/student.routes");
 const authRoutes = require("./routes/auth.routes");
+const uploadRoutes = require("./routes/upload.routes");
 const logger = require("./middlewares/logger.middleware");
 const errorHandler = require("./middlewares/error.middleware");
 const authMiddleware = require("./middlewares/auth.middleware");
@@ -53,6 +54,9 @@ app.use(logger);
 
 // ─── Auth routes (PUBLIC — no token needed) ────────────────
 app.use("/api/auth", authRoutes);
+
+// ─── Upload routes (PROTECTED) ─────────────────────────────
+app.use("/api/upload", uploadRoutes);
 
 // ─── Student routes (PROTECTED — valid JWT required) ────────
 // The authMiddleware runs BEFORE any student route handler.

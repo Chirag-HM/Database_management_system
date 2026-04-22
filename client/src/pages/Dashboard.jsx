@@ -17,6 +17,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getStudents, deleteStudent } from "../services/studentService";
+import { getSocket, disconnectSocket } from "../services/socketService";
 import StudentTable from "../components/StudentTable";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/Pagination";
@@ -60,6 +61,34 @@ const Dashboard = () => {
   // ─── useEffect: fetch data ─────────────────────────────
   useEffect(() => {
     fetchStudents();
+  }, [fetchStudents]);
+
+  // ─── useEffect: Socket.IO Real-time updates ────────────
+  useEffect(() => {
+    const socket = getSocket();
+
+    socket.on("studentCreated", (student) => {
+      setToast({ message: `New student added: ${student.name}`, type: "success" });
+      fetchStudents();
+    });
+
+    socket.on("studentUpdated", (student) => {
+      setToast({ message: `Student updated: ${student.name}`, type: "success" });
+      fetchStudents();
+    });
+
+    socket.on("studentDeleted", (id) => {
+      setToast({ message: "A student was deleted", type: "success" });
+      fetchStudents();
+    });
+
+    return () => {
+      socket.off("studentCreated");
+      socket.off("studentUpdated");
+      socket.off("studentDeleted");
+      // Optionally disconnect if dashboard is the only place it's used
+      // disconnectSocket(); 
+    };
   }, [fetchStudents]);
 
   // ─── Handlers ──────────────────────────────────────────
