@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skeleton Loading Screen</title>
+  <style>
+    /* ─────────────────────────────────────────────────────
+       Custom Properties — Theme Tokens
+       Change these 3 values to switch between dark / light.
+       ───────────────────────────────────────────────────── */
+    :root {
+      --skeleton-base: #1a1a1a;
+      --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+      --skeleton-speed: 1.8s;
+      --bg: #0a0a0a;
+      --card-border: rgba(255, 255, 255, 0.06);
+      --separator: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ── Light theme override example ──
+    :root {
+      --skeleton-base: #e5e7eb;
+      --skeleton-shimmer: rgba(0, 0, 0, 0.06);
+      --bg: #f9fafb;
+      --card-border: rgba(0, 0, 0, 0.08);
+      --separator: rgba(0, 0, 0, 0.06);
+    }
+    */
+
+    /* ─────────────────────────────────────────────────────
+       Keyframes — single animation, reused everywhere
+       ───────────────────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ─────────────────────────────────────────────────────
+       Accessibility — respect motion preferences
+       ───────────────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton::after {
+        animation: none !important;
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────
+       Reset & Base
+       ───────────────────────────────────────────────────── */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       Skeleton Base
+       ─────────────────────────────────────────────────────
+       Every skeleton element gets the flat base color.
+       The shimmer lives on a ::after pseudo-element so it
+       never interferes with the element's own sizing or
+       layout. overflow:hidden clips the moving gradient.
+       ───────────────────────────────────────────────────── */
+    .skeleton {
+      position: relative;
+      background-color: var(--skeleton-base);
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.04),
+        var(--skeleton-shimmer),
+        rgba(255, 255, 255, 0.04),
+        transparent
+      );
+      background-size: 200% 100%;
+      animation: shimmer var(--skeleton-speed) ease-in-out infinite;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       Shape Modifiers
+       ───────────────────────────────────────────────────── */
+    .skeleton--circle {
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .skeleton--text {
+      height: 14px;
+      border-radius: 6px;
+    }
+
+    .skeleton--text-sm {
+      height: 11px;
+      border-radius: 5px;
+    }
+
+    .skeleton--image {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      border-radius: 8px 8px 0 0;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       Section Labels (for demo clarity only)
+       ───────────────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.2);
+      margin-bottom: 16px;
+    }
+
+    /* ═════════════════════════════════════════════════════
+       1. PROFILE HEADER
+       ═════════════════════════════════════════════════════ */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .profile-header__avatar {
+      width: 56px;
+      height: 56px;
+    }
+
+    .profile-header__lines {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .profile-header__name {
+      width: 40%;
+    }
+
+    .profile-header__bio {
+      width: 65%;
+    }
+
+    /* ═════════════════════════════════════════════════════
+       2. CARD GRID
+       ═════════════════════════════════════════════════════ */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card__body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card__line-1 { width: 100%; }
+    .card__line-2 { width: 80%; }
+    .card__line-3 { width: 50%; }
+
+    /* ═════════════════════════════════════════════════════
+       3. CONTENT LIST
+       ═════════════════════════════════════════════════════ */
+    .content-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-list__row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+    }
+
+    .content-list__row:not(:last-child) {
+      border-bottom: 1px solid var(--separator);
+    }
+
+    .content-list__avatar {
+      width: 40px;
+      height: 40px;
+    }
+
+    .content-list__lines {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .content-list__primary {
+      width: 55%;
+    }
+
+    .content-list__secondary {
+      width: 35%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page" aria-busy="true" role="status" aria-label="Loading content">
+
+    <!-- ═══════════════════════════════════════════════════
+         1. PROFILE HEADER
+         ═══════════════════════════════════════════════════ -->
+    <section>
+      <p class="section-label">Profile Header</p>
+      <div class="profile-header">
+        <div class="skeleton skeleton--circle profile-header__avatar" aria-hidden="true"></div>
+        <div class="profile-header__lines">
+          <div class="skeleton skeleton--text profile-header__name" aria-hidden="true"></div>
+          <div class="skeleton skeleton--text-sm profile-header__bio" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         2. CARD GRID
+         ═══════════════════════════════════════════════════ -->
+    <section>
+      <p class="section-label">Card Grid</p>
+      <div class="card-grid">
+
+        <div class="card" aria-hidden="true">
+          <div class="skeleton skeleton--image"></div>
+          <div class="card__body">
+            <div class="skeleton skeleton--text card__line-1"></div>
+            <div class="skeleton skeleton--text-sm card__line-2"></div>
+            <div class="skeleton skeleton--text-sm card__line-3"></div>
+          </div>
+        </div>
+
+        <div class="card" aria-hidden="true">
+          <div class="skeleton skeleton--image"></div>
+          <div class="card__body">
+            <div class="skeleton skeleton--text card__line-1"></div>
+            <div class="skeleton skeleton--text-sm card__line-2"></div>
+            <div class="skeleton skeleton--text-sm card__line-3"></div>
+          </div>
+        </div>
+
+        <div class="card" aria-hidden="true">
+          <div class="skeleton skeleton--image"></div>
+          <div class="card__body">
+            <div class="skeleton skeleton--text card__line-1"></div>
+            <div class="skeleton skeleton--text-sm card__line-2"></div>
+            <div class="skeleton skeleton--text-sm card__line-3"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         3. CONTENT LIST
+         ═══════════════════════════════════════════════════ -->
+    <section>
+      <p class="section-label">Content List</p>
+      <div class="content-list">
+
+        <div class="content-list__row" aria-hidden="true">
+          <div class="skeleton skeleton--circle content-list__avatar"></div>
+          <div class="content-list__lines">
+            <div class="skeleton skeleton--text content-list__primary"></div>
+            <div class="skeleton skeleton--text-sm content-list__secondary"></div>
+          </div>
+        </div>
+
+        <div class="content-list__row" aria-hidden="true">
+          <div class="skeleton skeleton--circle content-list__avatar"></div>
+          <div class="content-list__lines">
+            <div class="skeleton skeleton--text content-list__primary"></div>
+            <div class="skeleton skeleton--text-sm content-list__secondary"></div>
+          </div>
+        </div>
+
+        <div class="content-list__row" aria-hidden="true">
+          <div class="skeleton skeleton--circle content-list__avatar"></div>
+          <div class="content-list__lines">
+            <div class="skeleton skeleton--text content-list__primary"></div>
+            <div class="skeleton skeleton--text-sm content-list__secondary"></div>
+          </div>
+        </div>
+
+        <div class="content-list__row" aria-hidden="true">
+          <div class="skeleton skeleton--circle content-list__avatar"></div>
+          <div class="content-list__lines">
+            <div class="skeleton skeleton--text content-list__primary"></div>
+            <div class="skeleton skeleton--text-sm content-list__secondary"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+</body>
+</html>
